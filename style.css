@@ -8,6 +8,7 @@
   --accent: #4d4a7d;
   --accent-dim: #34305c;
   --accent-soft: #ece8f6;
+  --lavender: #a89ae0;
   --warm: #b9924f;
   --danger: #bb6656;
   --shadow: rgba(60, 50, 110, 0.12);
@@ -53,6 +54,8 @@ h1, h2, h3, .serif {
   letter-spacing: 0.04em;
   color: var(--accent-dim);
 }
+.app-title { cursor: pointer; }
+.app-title:hover { color: var(--accent); }
 
 .icon-btn {
   background: var(--bg-panel);
@@ -78,12 +81,13 @@ h1, h2, h3, .serif {
 .back-btn {
   background: none;
   border: none;
-  color: var(--text-dim);
+  color: var(--accent-dim);
+  font-weight: 700;
   font-size: 0.9rem;
   padding: 4px 0 14px;
   cursor: pointer;
 }
-.back-btn:hover { color: var(--accent-dim); }
+.back-btn:hover { color: var(--accent); }
 
 .primary-btn {
   display: block;
@@ -284,6 +288,34 @@ h1, h2, h3, .serif {
 }
 
 /* シャッフル画面 */
+.shuffle-question-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-dim);
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+.shuffle-question-input {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0 0 14px;
+  resize: vertical;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.shuffle-question-input:focus { outline: none; border-color: var(--accent); }
+.shuffle-question-input.locked {
+  background: var(--bg-panel-2);
+  color: var(--text-dim);
+  pointer-events: none;
+}
 .shuffle-title-input {
   display: block;
   width: 100%;
@@ -311,9 +343,28 @@ h1, h2, h3, .serif {
   margin: 4px 0 14px;
 }
 
+/* シャッフル画面全体を画面高さに収め、かき混ぜエリアだけを可変にすることで
+   「3つに分ける」ボタンが画面外にはみ出さないようにする。
+   (かき混ぜエリアはtouch-action:noneでスクロールを奪うため、はみ出すと操作不能になる) */
+.shuffle-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 110px);
+}
+/* かき混ぜフェーズ全体(ヘッダー・入力欄を隠した後の表示)をふわっと出す */
+.mix-phase {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  opacity: 0;
+  transition: opacity 1.1s ease;
+}
+.mix-phase.visible { opacity: 1; }
 .mix-area {
   position: relative;
-  height: 360px;
+  flex: 1;
+  min-height: 220px;
   margin: 10px 0;
   touch-action: none;
   user-select: none;
@@ -345,7 +396,7 @@ h1, h2, h3, .serif {
 .shuffle-progress-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--accent), var(--warm));
+  background: linear-gradient(90deg, var(--accent-dim), var(--lavender));
   transition: width 0.15s ease-out;
 }
 
@@ -504,10 +555,17 @@ h1, h2, h3, .serif {
 .modal-body ul { padding-left: 1.2em; }
 .modal-body p { margin: 8px 0; }
 
-/* 結果画面 */
-#result-text {
+/* 結果画面: 画面の高さいっぱいまで結果エリアを伸ばし、収まらない分はエリア内でスクロールさせる */
+.result-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 130px);
+}
+.result-view {
   width: 100%;
+  flex: 1;
   min-height: 220px;
+  overflow-y: auto;
   background: var(--bg-panel);
   color: var(--text);
   border: 1px solid var(--border);
@@ -515,9 +573,12 @@ h1, h2, h3, .serif {
   padding: 14px;
   font-size: 0.9rem;
   line-height: 1.7;
-  resize: vertical;
   box-shadow: 0 2px 10px var(--shadow);
 }
+.result-line { margin: 0 0 10px; }
+.result-line-header { color: var(--accent-dim); font-weight: 700; }
+.result-line-question { color: var(--text-dim); font-style: italic; margin-bottom: 14px; }
+.result-line strong { color: var(--accent-dim); }
 .result-actions {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

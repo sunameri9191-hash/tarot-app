@@ -33,6 +33,9 @@ const SPREADS = [
     id: "horseshoe",
     name: "ホースシュー（馬蹄形）",
     aspect: "3 / 1.7",
+    // 頂点(本人の姿勢)がキャンバス上端に近く、ラベルをカード上に置くと画面によっては見切れるため、
+    // このスプレッドだけラベルをカードの下に表示する
+    labelPosition: "below",
     positions: [
       { id: "p1", label: "過去", x: 6, y: 60 },
       { id: "p2", label: "現在", x: 20, y: 38 },

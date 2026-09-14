@@ -7,12 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 
 <header class="app-header">
-  <h1>🔮 タロット占い</h1>
+  <h1 id="app-title" class="app-title" role="button" tabindex="0">タロット占い</h1>
   <button id="btn-history" class="icon-btn" aria-label="履歴">📜</button>
 </header>
 
@@ -61,15 +61,22 @@
     <button id="btn-save-spread" class="primary-btn">このスプレッドを保存</button>
   </section>
 
-  <section id="screen-shuffle" class="screen" hidden>
+  <section id="screen-shuffle" class="screen shuffle-screen" hidden>
     <button class="back-btn" data-back="screen-spread">← スプレッド選択に戻る</button>
-    <input type="text" id="shuffle-title-input" class="shuffle-title-input" maxlength="40">
-    <p class="hint" id="shuffle-hint"></p>
+    <div id="shuffle-intro">
+      <label class="shuffle-question-label" for="shuffle-question">占いたいこと</label>
+      <textarea id="shuffle-question" class="shuffle-question-input" maxlength="200" rows="2" placeholder="例：転職するか、今の仕事を続けるか迷っている"></textarea>
+      <input type="text" id="shuffle-title-input" class="shuffle-title-input" maxlength="40">
+      <p class="hint" id="shuffle-hint"></p>
+      <button id="btn-start-mix" class="primary-btn">カードをかき混ぜる →</button>
+    </div>
 
-    <div id="mix-area" class="mix-area"></div>
-    <p class="shuffle-instruction" id="shuffle-instruction">画面を指やマウスでなぞってシャッフルしよう</p>
-    <div class="shuffle-progress" id="shuffle-progress"><div id="shuffle-progress-fill" class="shuffle-progress-fill"></div></div>
-    <button id="btn-mix-done" class="primary-btn" disabled>3つに分ける →</button>
+    <div id="mix-phase" class="mix-phase" hidden>
+      <div id="mix-area" class="mix-area"></div>
+      <p class="shuffle-instruction" id="shuffle-instruction">画面を指やマウスでなぞってシャッフルしよう</p>
+      <div class="shuffle-progress" id="shuffle-progress"><div id="shuffle-progress-fill" class="shuffle-progress-fill"></div></div>
+      <button id="btn-mix-done" class="primary-btn" disabled>3つに分ける →</button>
+    </div>
   </section>
 
   <section id="screen-reveal" class="screen" hidden>
@@ -82,10 +89,10 @@
     <button id="btn-to-result" class="primary-btn" hidden>結果をまとめる</button>
   </section>
 
-  <section id="screen-result" class="screen" hidden>
+  <section id="screen-result" class="screen result-screen" hidden>
     <button class="back-btn" data-back="screen-reveal">← カード表示に戻る</button>
     <h2>鑑定結果</h2>
-    <textarea id="result-text" readonly></textarea>
+    <div id="result-view" class="result-view"></div>
     <div class="result-actions">
       <button id="btn-copy">📋 コピー</button>
       <button id="btn-save-history">💾 履歴に保存</button>
@@ -115,7 +122,7 @@
 </div>
 
 <script src="data/cards.js?v=1"></script>
-<script src="data/spreads.js?v=2"></script>
-<script src="app.js?v=10"></script>
+<script src="data/spreads.js?v=3"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>

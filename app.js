@@ -23,6 +23,10 @@ function showScreen(id) {
   document.querySelectorAll(".screen").forEach(el => {
     el.hidden = el.id !== id;
   });
+  // シャッフル画面ではかき混ぜ開始と同時にヘッダーを隠すが、他の画面に移る時は必ず元に戻す
+  if (id !== "screen-shuffle") {
+    document.querySelector(".app-header").hidden = false;
+  }
   window.scrollTo({ top: 0 });
 }
 
@@ -249,7 +253,7 @@ document.getElementById("btn-save-spread").addEventListener("click", () => {
 });
 
 // ---------- シャッフル画面（かき混ぜ→3つに分ける→重ね順選択） ----------
-const MIX_THRESHOLD = 30;
+const MIX_THRESHOLD = 150;
 const MIX_CARD_W = 62;
 const MIX_CARD_H = MIX_CARD_W * 1.75;
 const MIX_INFLUENCE_RADIUS = 120; // ポインター周辺、これより近いカードだけ押し動かす
@@ -271,33 +275,84 @@ function clamp(v, min, max) {
 }
 
 function openShuffleScreen() {
+  document.getElementById("shuffle-intro").hidden = false;
+  document.getElementById("mix-phase").hidden = true;
+  document.getElementById("mix-phase").classList.remove("visible");
+  document.querySelector(".app-header").hidden = false;
+
   const titleInput = document.getElementById("shuffle-title-input");
   titleInput.value = state.spread.name;
   titleInput.readOnly = false;
   titleInput.classList.remove("locked");
 
+  const questionInput = document.getElementById("shuffle-question");
+  questionInput.value = "";
+  questionInput.readOnly = false;
+  questionInput.classList.remove("locked");
+
   document.getElementById("shuffle-hint").textContent =
-    `${state.spread.positions.length}枚引きます。名前は編集できるよ(シャッフルを始めると確定)`;
-  document.getElementById("shuffle-instruction").textContent = "画面を指やマウスでなぞってシャッフルしよう";
-  document.getElementById("shuffle-progress").hidden = false;
+    `${state.spread.positions.length}枚引きます。名前は編集できるよ(かき混ぜ始めると確定)`;
   document.getElementById("shuffle-progress-fill").style.width = "0%";
+  const doneBtn = document.getElementById("btn-mix-done");
+  doneBtn.disabled = true;
+  doneBtn.textContent = "3つに分ける →";
+
+  mixState = { deck: filterDeck(state.deckKey), progress: 0, isPointerDown: false, cards: [], lastPointer: null };
+  showScreen("screen-shuffle");
+}
+
+// 「占いたいこと」入力フェーズから、実際にかき混ぜるフェーズへ画面ごと切り替える。
+// (かき混ぜ中にヘッダー等を隠すとmix-areaのサイズが変わって指の位置とズレるため、
+//  レイアウトが完全に確定してからカードを配置する)
+function beginMixingPhase() {
+  const titleInput = document.getElementById("shuffle-title-input");
+  titleInput.readOnly = true;
+  titleInput.classList.add("locked");
+  titleInput.blur();
+
+  const questionInput = document.getElementById("shuffle-question");
+  const question = questionInput.value.trim();
+  questionInput.readOnly = true;
+  questionInput.classList.add("locked");
+  questionInput.blur();
+
+  document.getElementById("shuffle-instruction").textContent = question
+    ? `「${question}」を思い浮かべながら、カードをよく混ぜてください`
+    : "占いたいことを頭に思い浮かべながら、カードをよく混ぜてください";
+
+  document.getElementById("shuffle-intro").hidden = true;
+  document.querySelector(".app-header").hidden = true;
+
+  document.getElementById("shuffle-progress").hidden = false;
   const doneBtn = document.getElementById("btn-mix-done");
   doneBtn.hidden = false;
   doneBtn.disabled = true;
   doneBtn.textContent = "3つに分ける →";
 
-  mixState = { deck: filterDeck(state.deckKey), progress: 0, isPointerDown: false, cards: [], lastPointer: null };
-  // 幅を測るのでscreen-shuffleを先に表示してからmix-areaを描く(隠れたままだと幅が0になる)
-  showScreen("screen-shuffle");
-  renderMixArea();
+  const mixPhase = document.getElementById("mix-phase");
+  mixPhase.hidden = false;
+  // 幅を測るのでmix-phaseを表示してからmix-areaを描く(隠れたままだと幅が0になる)。
+  // 2フレーム待ってからフェードインさせることで、レイアウト確定後に演出が始まるようにする
+  requestAnimationFrame(() => {
+    renderMixArea();
+    requestAnimationFrame(() => mixPhase.classList.add("visible"));
+  });
 }
+document.getElementById("btn-start-mix").addEventListener("click", beginMixingPhase);
 
 function lockShuffleTitle() {
   const titleInput = document.getElementById("shuffle-title-input");
-  if (titleInput.readOnly) return;
-  titleInput.readOnly = true;
-  titleInput.classList.add("locked");
-  titleInput.blur();
+  if (!titleInput.readOnly) {
+    titleInput.readOnly = true;
+    titleInput.classList.add("locked");
+    titleInput.blur();
+  }
+  const questionInput = document.getElementById("shuffle-question");
+  if (!questionInput.readOnly) {
+    questionInput.readOnly = true;
+    questionInput.classList.add("locked");
+    questionInput.blur();
+  }
 }
 
 function mixBounds(areaW, areaH) {
@@ -501,13 +556,15 @@ function convergeCardsAndDraw() {
 function finalizeDrawAndReveal(finalDeck, originPoint) {
   lockShuffleTitle();
   const titleInput = document.getElementById("shuffle-title-input");
+  const questionInput = document.getElementById("shuffle-question");
   const drawn = state.spread.positions.map((position, i) => ({
     position,
     card: finalDeck[i],
     orientation: Math.random() < REVERSED_PROBABILITY ? "reversed" : "upright",
   }));
   const title = titleInput.value.trim() || state.spread.name;
-  state.reading = { spread: state.spread, deckKey: state.deckKey, drawn, title };
+  const question = questionInput.value.trim();
+  state.reading = { spread: state.spread, deckKey: state.deckKey, drawn, title, question };
   showScreen("screen-reveal");
   renderRevealScreen(originPoint);
 }
@@ -526,13 +583,17 @@ function fitCardWidth(spread, canvasWidthPx, canvasHeightPx, baseWidth) {
   );
   const positions = spread.positions;
 
+  // ラベルはカードの上下どちらかに乗るので、はみ出し判定はラベル側にだけ余白を足す
+  const labelAboveExtra = spread.labelPosition === "below" ? 0 : SLOT_LABEL_HEADROOM_PX;
+  const labelBelowExtra = spread.labelPosition === "below" ? SLOT_LABEL_HEADROOM_PX : 0;
+
   function overflowsCanvas(w) {
     const h = w * CARD_RATIO;
     return positions.some(p => {
       const pw = p.rotate ? h : w, ph = p.rotate ? w : h;
       const cx = p.x / 100 * canvasWidthPx, cy = p.y / 100 * canvasHeightPx;
       return cx - pw / 2 < 0 || cx + pw / 2 > canvasWidthPx ||
-        cy - ph / 2 - SLOT_LABEL_HEADROOM_PX < 0 || cy + ph / 2 > canvasHeightPx;
+        cy - ph / 2 - labelAboveExtra < 0 || cy + ph / 2 + labelBelowExtra > canvasHeightPx;
     });
   }
 
@@ -543,8 +604,10 @@ function fitCardWidth(spread, canvasWidthPx, canvasHeightPx, baseWidth) {
       for (let j = i + 1; j < positions.length; j++) {
         const a = positions[i], b = positions[j];
         if (allowedPairs.has([a.id, b.id].sort().join("|"))) continue;
-        const aw = a.rotate ? h : w, ah = a.rotate ? w : h;
-        const bw = b.rotate ? h : w, bh = b.rotate ? w : h;
+        // ラベルはカードの上に乗っているので、縦の衝突判定にはラベル分の高さも加味する
+        // (加味しないと、縦に近い位置同士でラベルだけ重なって隠れてしまう)
+        const aw = a.rotate ? h : w, ah = (a.rotate ? w : h) + SLOT_LABEL_HEADROOM_PX;
+        const bw = b.rotate ? h : w, bh = (b.rotate ? w : h) + SLOT_LABEL_HEADROOM_PX;
         const dx = Math.abs((a.x - b.x) / 100 * canvasWidthPx);
         const dy = Math.abs((a.y - b.y) / 100 * canvasHeightPx);
         if (dx < (aw + bw) / 2 * 0.92 && dy < (ah + bh) / 2 * 0.92) return true;
@@ -617,8 +680,13 @@ function renderRevealScreen(originPoint) {
 
     face.addEventListener("click", () => openCardModal(item.card, item.orientation));
 
-    slot.appendChild(label);
-    slot.appendChild(face);
+    if (spread.labelPosition === "below") {
+      slot.appendChild(face);
+      slot.appendChild(label);
+    } else {
+      slot.appendChild(label);
+      slot.appendChild(face);
+    }
     canvas.appendChild(slot);
     slots.push({ slot, inner });
   });
@@ -662,7 +730,9 @@ function evalAspect(aspectStr) {
 }
 
 document.getElementById("btn-to-result").addEventListener("click", () => {
-  document.getElementById("result-text").value = buildResultText(state.reading);
+  const view = document.getElementById("result-view");
+  view.innerHTML = buildResultHtml(state.reading);
+  view.dataset.plain = buildResultText(state.reading);
   showScreen("screen-result");
 });
 
@@ -749,9 +819,10 @@ function formatDateTime(d) {
 }
 
 function buildResultText(reading) {
-  const { deckKey, drawn, title } = reading;
+  const { deckKey, drawn, title, question } = reading;
   const lines = [];
   lines.push(`🔮 ${title}（${DECKS[deckKey].label}） - ${formatDateTime(new Date())}`);
+  if (question) lines.push(`占いたいこと：${question}`);
   drawn.forEach((item, i) => {
     const orientLabel = item.orientation === "reversed" ? "逆位置" : "正位置";
     const meaning = item.orientation === "reversed" ? item.card.reversedShort : item.card.uprightShort;
@@ -760,13 +831,34 @@ function buildResultText(reading) {
   return lines.join("\n");
 }
 
+// buildResultText と同じ内容を、位置ラベル(過去・現在など)だけ太字にして画面表示用に組み立てる
+function buildResultHtml(reading) {
+  const { deckKey, drawn, title, question } = reading;
+  const parts = [];
+  parts.push(`<p class="result-line result-line-header">🔮 ${escapeHtml(title)}（${escapeHtml(DECKS[deckKey].label)}） - ${escapeHtml(formatDateTime(new Date()))}</p>`);
+  if (question) parts.push(`<p class="result-line result-line-question">占いたいこと：${escapeHtml(question)}</p>`);
+  drawn.forEach((item, i) => {
+    const orientLabel = item.orientation === "reversed" ? "逆位置" : "正位置";
+    const meaning = item.orientation === "reversed" ? item.card.reversedShort : item.card.uprightShort;
+    parts.push(
+      `<p class="result-line">${i + 1}. <strong>${escapeHtml(item.position.label)}</strong>：${escapeHtml(item.card.nameJa)}（${orientLabel}） — ${escapeHtml(meaning)}</p>`
+    );
+  });
+  return parts.join("");
+}
+
 document.getElementById("btn-copy").addEventListener("click", async () => {
-  const text = document.getElementById("result-text").value;
+  const view = document.getElementById("result-view");
+  const text = view.dataset.plain || "";
   try {
     await navigator.clipboard.writeText(text);
     flashButton(document.getElementById("btn-copy"), "コピーした！");
   } catch {
-    document.getElementById("result-text").select();
+    const range = document.createRange();
+    range.selectNodeContents(view);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
     flashButton(document.getElementById("btn-copy"), "選択したので Ctrl+C で");
   }
 });
@@ -801,7 +893,7 @@ document.getElementById("btn-save-history").addEventListener("click", () => {
     createdAt: new Date().toISOString(),
     spreadName: state.reading.title,
     deckLabel: DECKS[state.reading.deckKey].label,
-    text: document.getElementById("result-text").value,
+    text: document.getElementById("result-view").dataset.plain || "",
   });
   saveHistoryList(list.slice(0, HISTORY_LIMIT));
   flashButton(document.getElementById("btn-save-history"), "保存した！");
@@ -810,6 +902,16 @@ document.getElementById("btn-save-history").addEventListener("click", () => {
 document.getElementById("btn-history").addEventListener("click", () => {
   renderHistoryList();
   showScreen("screen-history");
+});
+
+document.getElementById("app-title").addEventListener("click", () => {
+  showScreen("screen-deck");
+});
+document.getElementById("app-title").addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    showScreen("screen-deck");
+  }
 });
 
 function renderHistoryList() {
