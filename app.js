@@ -295,7 +295,7 @@ function openShuffleScreen() {
   document.getElementById("shuffle-progress-fill").style.width = "0%";
   const doneBtn = document.getElementById("btn-mix-done");
   doneBtn.disabled = true;
-  doneBtn.textContent = "3つに分ける →";
+  doneBtn.textContent = "次へ →";
 
   mixState = { deck: filterDeck(state.deckKey), progress: 0, isPointerDown: false, cards: [], lastPointer: null };
   showScreen("screen-shuffle");
@@ -327,7 +327,7 @@ function beginMixingPhase() {
   const doneBtn = document.getElementById("btn-mix-done");
   doneBtn.hidden = false;
   doneBtn.disabled = true;
-  doneBtn.textContent = "3つに分ける →";
+  doneBtn.textContent = "次へ →";
 
   const mixPhase = document.getElementById("mix-phase");
   mixPhase.hidden = false;
