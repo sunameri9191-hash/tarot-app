@@ -1,0 +1,568 @@
+:root {
+  --bg: #faf6ee;
+  --bg-panel: #ffffff;
+  --bg-panel-2: #eee9f7;
+  --border: #ded8ec;
+  --text: #37324a;
+  --text-dim: #8d84a3;
+  --accent: #4d4a7d;
+  --accent-dim: #34305c;
+  --accent-soft: #ece8f6;
+  --warm: #b9924f;
+  --danger: #bb6656;
+  --shadow: rgba(60, 50, 110, 0.12);
+  --card-w: 78px;
+  --card-ratio: 1 / 1.75;
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  color: var(--text);
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Segoe UI", system-ui, sans-serif;
+  min-height: 100%;
+  background-color: var(--bg);
+  background-image: url("images/bg-cloth.jpg");
+  background-repeat: repeat;
+}
+
+body {
+  padding: 0 16px 40px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+h1, h2, h3, .serif {
+  font-family: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.04em;
+  color: var(--accent-dim);
+}
+
+.icon-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--accent-dim);
+  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.screen { padding-top: 22px; }
+.screen h2 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.hint { color: var(--text-dim); font-size: 0.9rem; margin: 4px 0 18px; }
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  padding: 4px 0 14px;
+  cursor: pointer;
+}
+.back-btn:hover { color: var(--accent-dim); }
+
+.primary-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin-top: 22px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  color: #fffdf8;
+  font-weight: bold;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--shadow);
+}
+.primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* デッキ選択 */
+.deck-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.deck-option {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text);
+  padding: 22px 10px;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px var(--shadow);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.deck-option:hover { border-color: var(--accent); transform: translateY(-1px); }
+.deck-option span { color: var(--text-dim); font-size: 0.8rem; }
+.deck-option.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+
+/* スプレッド選択 */
+.spread-list { display: flex; flex-direction: column; gap: 10px; }
+.spread-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px var(--shadow);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.spread-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.spread-card.disabled { cursor: not-allowed; opacity: 0.45; }
+.spread-card.disabled:hover { border-color: var(--border); transform: none; }
+.spread-card .count { color: var(--text-dim); font-size: 0.85rem; }
+.spread-card-left { display: flex; align-items: center; gap: 8px; }
+.spread-card-right { display: flex; align-items: center; gap: 10px; }
+.custom-badge {
+  font-size: 0.68rem;
+  color: var(--accent-dim);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.spread-delete-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.secondary-btn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  margin-top: 14px;
+  border: 1px dashed var(--accent);
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent-dim);
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* スプレッドビルダー */
+.builder-name-input {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+  color: var(--text);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.builder-canvas-wrap {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-panel);
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.builder-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  background-image: radial-gradient(circle, var(--border) 1.5px, transparent 1.5px);
+  background-size: 5% 5%;
+  touch-action: none;
+}
+.builder-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: grab;
+  touch-action: none;
+}
+.builder-marker-card {
+  width: 40px;
+  aspect-ratio: var(--card-ratio);
+  border-radius: 6px;
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+.builder-marker.rotated .builder-marker-card { transform: rotate(90deg); }
+.builder-marker.selected .builder-marker-card {
+  border-color: var(--warm);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(185, 146, 79, 0.28);
+}
+.builder-marker-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.builder-edit-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-panel);
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.builder-field {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.builder-field input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.92rem;
+}
+.builder-rotate-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.builder-delete-btn {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* シャッフル画面 */
+.shuffle-title-input {
+  display: block;
+  width: 100%;
+  font-family: "Shippori Mincho", serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed var(--accent);
+  padding: 2px 0 6px;
+  margin: 0 0 4px;
+}
+.shuffle-title-input:focus { outline: none; border-bottom-color: var(--warm); }
+.shuffle-title-input.locked {
+  border-bottom: none;
+  color: var(--text);
+  pointer-events: none;
+}
+
+.shuffle-instruction {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin: 4px 0 14px;
+}
+
+.mix-area {
+  position: relative;
+  height: 360px;
+  margin: 10px 0;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  overflow: hidden;
+}
+.mix-card {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 62px;
+  aspect-ratio: var(--card-ratio);
+  margin-left: -31px;
+  margin-top: calc(-31px * 1.75);
+  border-radius: 7px;
+  background: url("images/back.jpg") center / cover;
+  box-shadow: 0 3px 8px var(--shadow);
+  /* 押されてから少し遅れてついてくる・止まる時に少し揺れる、慣性っぽい効き方 */
+  transition: transform 0.45s cubic-bezier(.22, .9, .3, 1.18);
+  pointer-events: none;
+}
+
+.shuffle-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin: 4px 0 4px;
+}
+.shuffle-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--warm));
+  transition: width 0.15s ease-out;
+}
+
+/* 3つの山をタップして選ぶ用の当たり判定(見た目はほぼ透明。選んだかどうかはカード側のpickedとバッジで示す) */
+.pile-tap-zone {
+  position: absolute;
+  top: 50%;
+  width: 84px;
+  height: 148px;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 300;
+}
+.pile-order-badge {
+  position: absolute;
+  top: -12px; right: -12px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px var(--shadow);
+}
+.mix-card.picked {
+  box-shadow: 0 0 0 2px var(--accent), 0 3px 8px var(--shadow);
+}
+
+/* スプレッドキャンバス */
+.spread-canvas-scroll {
+  overflow-x: auto;
+  overflow-y: visible; /* overflow-xだけ指定すると仕様上overflow-yも暗黙にautoになり、はみ出たラベル/カードが縦方向にクリップされるため明示 */
+  margin: 10px 0;
+  -webkit-overflow-scrolling: touch;
+}
+.spread-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.card-slot {
+  position: absolute;
+  width: var(--card-w);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.card-slot .slot-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-dim);
+  text-align: center;
+  white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(250, 246, 238, 0.94);
+  padding: 2px 9px;
+  border-radius: 999px;
+  box-shadow: 0 1px 5px var(--shadow);
+  z-index: 10;
+}
+.card-face {
+  width: var(--card-w);
+  aspect-ratio: var(--card-ratio);
+  cursor: pointer;
+  position: relative;
+  perspective: 800px;
+}
+.card-face.slot-rotated { transform: rotate(90deg); }
+
+.card-face-inner {
+  position: relative;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  animation: autoFlip 0.65s cubic-bezier(.3, .1, .3, 1) both;
+}
+@keyframes autoFlip {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(180deg); }
+}
+
+.face-back, .face-front {
+  position: absolute; inset: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  background: var(--bg-panel-2);
+  box-shadow: 0 3px 10px var(--shadow);
+}
+.face-front { border: 1px solid var(--border); transform: rotateY(180deg); }
+.face-back .back-pattern {
+  position: absolute; inset: 0;
+  background: url("images/back.jpg") center / cover;
+  border-radius: 6px;
+}
+.card-face img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.card-face img.reversed { transform: rotate(180deg); }
+
+/* カード詳細モーダル */
+.modal {
+  position: fixed; inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(55, 50, 74, 0.45);
+}
+.modal-content {
+  position: relative;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px;
+  width: min(92vw, 420px);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 36px rgba(55, 50, 74, 0.18);
+}
+.modal-close {
+  position: absolute; top: 12px; right: 16px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 1.4rem; cursor: pointer;
+}
+.modal-content img {
+  display: block;
+  width: 55%;
+  margin: 0 auto 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px var(--shadow);
+}
+.modal-content img.reversed { transform: rotate(180deg); }
+.modal-content h3 { margin: 0 0 4px; text-align: center; font-size: 1.15rem; }
+#modal-orientation-label { text-align: center; color: var(--warm); margin: 0 0 12px; font-size: 0.9rem; font-weight: bold; }
+#modal-short { color: var(--text); line-height: 1.7; }
+#modal-more-toggle {
+  background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-dim);
+  border-radius: 10px; padding: 7px 14px; margin-top: 12px; cursor: pointer; font-size: 0.85rem;
+}
+.modal-body { margin-top: 14px; line-height: 1.8; font-size: 0.92rem; color: var(--text); }
+.modal-body h3, .modal-body h4, .modal-body h5 { color: var(--accent-dim); margin: 16px 0 6px; font-family: "Shippori Mincho", serif; }
+.modal-body ul { padding-left: 1.2em; }
+.modal-body p { margin: 8px 0; }
+
+/* 結果画面 */
+#result-text {
+  width: 100%;
+  min-height: 220px;
+  background: var(--bg-panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  resize: vertical;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.result-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.result-actions button {
+  padding: 12px 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--accent-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+/* 履歴 */
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-item {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.history-item .history-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  cursor: pointer;
+}
+.history-item .history-date { color: var(--text-dim); font-size: 0.8rem; }
+.history-item .history-detail {
+  margin-top: 10px; white-space: pre-wrap; font-size: 0.85rem; color: var(--text-dim);
+  border-top: 1px solid var(--border); padding-top: 10px;
+}
+.history-item .history-delete {
+  background: none; border: none; color: var(--danger);
+  font-size: 0.8rem; cursor: pointer; margin-top: 8px;
+}
+.empty-note { color: var(--text-dim); text-align: center; padding: 40px 0; }
+
+[hidden] { display: none !important; }
+
+@media (min-width: 480px) {
+  :root { --card-w: 92px; }
+}
