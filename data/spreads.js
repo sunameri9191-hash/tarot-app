@@ -106,15 +106,16 @@ const SPREADS = [
   {
     id: "two-choices",
     name: "二者択一",
-    aspect: "1 / 1.3",
+    aspect: "8 / 5",
+    // 中央下(現状)から左右に扇状に広がり、結果が両端の上にくる形
     positions: [
-      { id: "p1", label: "現在のテーマ", x: 50, y: 10 },
-      { id: "p2", label: "選択肢A：現状", x: 22, y: 35 },
-      { id: "p3", label: "選択肢A：課題", x: 22, y: 62 },
-      { id: "p4", label: "選択肢A：結果", x: 22, y: 89 },
-      { id: "p5", label: "選択肢B：現状", x: 78, y: 35 },
-      { id: "p6", label: "選択肢B：課題", x: 78, y: 62 },
-      { id: "p7", label: "選択肢B：結果", x: 78, y: 89 },
+      { id: "p1", label: "現在の状況", x: 50, y: 88 },
+      { id: "p2", label: "選択肢A：現状", x: 34, y: 68 },
+      { id: "p3", label: "選択肢B：現状", x: 66, y: 68 },
+      { id: "p4", label: "選択肢A：未来", x: 22, y: 46 },
+      { id: "p5", label: "選択肢B：未来", x: 78, y: 46 },
+      { id: "p6", label: "選択肢A：結果", x: 12, y: 20 },
+      { id: "p7", label: "選択肢B：結果", x: 88, y: 20 },
     ],
   },
   {
