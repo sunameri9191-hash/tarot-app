@@ -67,7 +67,10 @@ function renderSpreadList() {
   allSpreads.forEach(spread => {
     const el = document.createElement("div");
     el.className = "spread-card";
-    const disabled = spread.positions.length > deckSize;
+    const deck = filterDeck(state.deckKey);
+    const disabled = spread.positions.length > deckSize ||
+      ["major", "minor"].some(a =>
+        spread.positions.filter(p => p.arcana === a).length > deck.filter(c => c.arcana === a).length);
     if (disabled) el.classList.add("disabled");
 
     const left = document.createElement("div");
@@ -557,11 +560,15 @@ function finalizeDrawAndReveal(finalDeck, originPoint) {
   lockShuffleTitle();
   const titleInput = document.getElementById("shuffle-title-input");
   const questionInput = document.getElementById("shuffle-question");
-  const drawn = state.spread.positions.map((position, i) => ({
-    position,
-    card: finalDeck[i],
-    orientation: Math.random() < REVERSED_PROBABILITY ? "reversed" : "upright",
-  }));
+  const remaining = [...finalDeck];
+  const drawn = state.spread.positions.map(position => {
+    const idx = position.arcana ? remaining.findIndex(c => c.arcana === position.arcana) : 0;
+    return {
+      position,
+      card: remaining.splice(idx, 1)[0],
+      orientation: Math.random() < REVERSED_PROBABILITY ? "reversed" : "upright",
+    };
+  });
   const title = titleInput.value.trim() || state.spread.name;
   const question = questionInput.value.trim();
   state.reading = { spread: state.spread, deckKey: state.deckKey, drawn, title, question };

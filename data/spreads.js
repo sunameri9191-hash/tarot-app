@@ -20,6 +20,16 @@ const SPREADS = [
     ],
   },
   {
+    id: "major-minor",
+    name: "テーマと行動（大アルカナ1枚＋小アルカナ1枚）",
+    aspect: "2 / 1.5",
+    // arcana を指定した位置には、山の上から見てその種類の最初のカードを置く(フルデッキ用)
+    positions: [
+      { id: "p1", label: "大きなテーマ", x: 28, y: 55, arcana: "major" },
+      { id: "p2", label: "現実的な行動", x: 72, y: 55, arcana: "minor" },
+    ],
+  },
+  {
     id: "three-card",
     name: "スリーカード（過去・現在・未来）",
     aspect: "3 / 1.5",
